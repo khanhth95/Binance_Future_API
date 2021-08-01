@@ -605,3 +605,25 @@ class RequestClient(object):
         response = call_sync(self.request_impl.get_api_trading_stats(symbol))
         self.refresh_limits(response[1])
         return response[0]
+
+    def get_entry_price(self, symbol: 'str', positionSide: 'PositionSide' = PositionSide.INVALID) -> any:
+        positions = self.get_position_v2()
+        for pos in positions:
+            if (pos.symbol==symbol and pos.positionSide==positionSide):
+                return [pos.entryPrice, pos.leverage, pos.positionAmt, pos.unrealizedProfit]
+
+    def get_precisions(self, symbol: 'str') -> any:
+        symbols = self.get_exchange_information().symbols
+        for sym in symbols:
+            if (sym.symbol == symbol):
+                return [sym.pricePrecision, sym.quantityPrecision]
+
+    def getClosedPnL(self, symbol: 'str' = None, startTime: 'long' = None) -> any:
+        totalP = 0
+        result = self.get_income_history(symbol=symbol, startTime=startTime, incomeType='REALIZED_PNL')
+        for res in result:
+            totalP += res.income
+        result = self.get_income_history(symbol=symbol, startTime=startTime, incomeType='COMMISSION')
+        for res in result:
+            totalP += res.income
+        return totalP
