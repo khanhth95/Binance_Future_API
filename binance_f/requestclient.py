@@ -618,12 +618,12 @@ class RequestClient(object):
             if (sym.symbol == symbol):
                 return [sym.pricePrecision, sym.quantityPrecision]
 
-    def getClosedPnL(self, symbol: 'str' = None, startTime: 'long' = None) -> any:
+    def getClosedPnL(self, symbol: 'str' = None, startTime: 'long' = None, endTime: 'long' = None) -> any:
         totalP = 0
-        result = self.get_income_history(symbol=symbol, startTime=startTime, incomeType='REALIZED_PNL')
+        result = self.get_income_history(symbol=symbol, startTime=startTime, endTime=endTime, incomeType='REALIZED_PNL')
         for res in result:
             totalP += res.income
-        result = self.get_income_history(symbol=symbol, startTime=startTime, incomeType='COMMISSION')
+        result = self.get_income_history(symbol=symbol, startTime=startTime, endTime=endTime, incomeType='COMMISSION')
         for res in result:
             totalP += res.income
         return totalP
