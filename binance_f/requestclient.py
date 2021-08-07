@@ -618,12 +618,28 @@ class RequestClient(object):
             if (sym.symbol == symbol):
                 return [sym.pricePrecision, sym.quantityPrecision]
 
-    def getClosedPnL(self, symbol: 'str' = None, startTime: 'long' = None, endTime: 'long' = None) -> any:
+    def getClosedPnL(self, symbol: 'str', startTime: 'long' = None) -> any:
         totalP = 0
-        result = self.get_income_history(symbol=symbol, startTime=startTime, endTime=endTime, incomeType='REALIZED_PNL')
+        result = self.get_account_trades(symbol=symbol, startTime=startTime)
         for res in result:
-            totalP += res.income
-        result = self.get_income_history(symbol=symbol, startTime=startTime, endTime=endTime, incomeType='COMMISSION')
-        for res in result:
-            totalP += res.income
+            totalP = totalP + res.realizedPnl - res.commission
         return totalP
+
+    def getPnL(self, startTime: 'long' = None, endTime: 'long' = None) -> any:
+        totalP = 0
+        pSymbol = {}
+        result = self.get_income_history(startTime=startTime, endTime=endTime, limit=1000, incomeType='REALIZED_PNL')
+        for res in result:
+            totalP += res.income
+            try:
+                pSymbol[res.symbol] += res.income
+            except:
+                pSymbol[res.symbol] = res.income
+        result = self.get_income_history(startTime=startTime, endTime=endTime, limit=1000, incomeType='COMMISSION')
+        for res in result:
+            totalP += res.income
+            try:
+                pSymbol[res.symbol] += res.income
+            except:
+                pSymbol[res.symbol] = res.income
+        return [totalP, pSymbol]
